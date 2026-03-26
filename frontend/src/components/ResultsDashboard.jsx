@@ -7,19 +7,19 @@ export default function ResultsDashboard({ result, analyzing }) {
 
   if (analyzing) {
     return (
-      <div className="glass-panel animate-fade-in" style={{ padding: '40px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivitySquare size={48} color="var(--accent)" className="animate-pulse" style={{ marginBottom: '24px' }} />
-        <h3 style={{ fontSize: '1.4rem', fontWeight: '400', marginBottom: '8px' }}>Live Analytics Computing</h3>
-        <p style={{ color: 'var(--text-secondary)' }}>Fusing anomaly detections, bounding boxes, and manifest heuristics...</p>
+      <div className="glass-panel animate-fade-in flex flex-col items-center justify-center p-10 h-full">
+        <ActivitySquare size={48} color="var(--accent)" className="animate-pulse mb-6" />
+        <h3 className="text-[1.4rem] font-normal mb-2">Live Analytics Computing</h3>
+        <p className="text-secondary">Fusing anomaly detections, bounding boxes, and manifest heuristics...</p>
       </div>
     );
   }
 
   if (!result) {
     return (
-      <div className="glass-panel" style={{ padding: '40px', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.5 }}>
-        <Database size={48} color="var(--text-secondary)" style={{ marginBottom: '24px' }} />
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>No telemetry data. Awaiting scan initialization.</p>
+      <div className="glass-panel flex flex-col items-center justify-center p-10 h-full opacity-50">
+        <Database size={48} color="var(--text-secondary)" className="mb-6" />
+        <p className="text-secondary text-lg">No telemetry data. Awaiting scan initialization.</p>
       </div>
     );
   }
@@ -36,88 +36,88 @@ export default function ResultsDashboard({ result, analyzing }) {
   };
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ padding: '32px', height: '100%' }}>
+    <div className="glass-panel animate-fade-in p-8 h-full">
       {result.riskLevel === 'HIGH' ? (
-        <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '8px', marginBottom: '24px', textAlign: 'center' }}>
-          <h2 style={{ color: '#fca5a5', margin: 0, letterSpacing: '2px', fontSize: '1.2rem', fontWeight: '600' }}>⚠️ CARGO DETAINED ⚠️</h2>
+        <div className="p-3 bg-red-500/10 border border-red-500/40 rounded-lg mb-6 text-center">
+          <h2 className="text-red-300 m-0 tracking-widest text-xl font-semibold">⚠️ CARGO DETAINED ⚠️</h2>
         </div>
       ) : result.riskLevel === 'MEDIUM' ? (
-        <div style={{ padding: '12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.4)', borderRadius: '8px', marginBottom: '24px', textAlign: 'center' }}>
-          <h2 style={{ color: '#fcd34d', margin: 0, letterSpacing: '2px', fontSize: '1.2rem', fontWeight: '600' }}>✋ MANUAL INSPECTION REQUIRED ✋</h2>
+        <div className="p-3 bg-amber-500/10 border border-amber-500/40 rounded-lg mb-6 text-center">
+          <h2 className="text-amber-300 m-0 tracking-widest text-xl font-semibold">✋ MANUAL INSPECTION REQUIRED ✋</h2>
         </div>
       ) : (
-        <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '8px', marginBottom: '24px', textAlign: 'center' }}>
-          <h2 style={{ color: '#6ee7b7', margin: 0, letterSpacing: '2px', fontSize: '1.2rem', fontWeight: '600' }}>✅ CLEARED FOR ENTRY ✅</h2>
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/40 rounded-lg mb-6 text-center">
+          <h2 className="text-emerald-300 m-0 tracking-widest text-xl font-semibold">✅ CLEARED FOR ENTRY ✅</h2>
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+      <div className="flex justify-between items-start mb-8">
         <div>
-          <h3 style={{ fontSize: '1.3rem', fontWeight: '600', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 className="text-[1.3rem] font-semibold mb-1 flex items-center gap-2">
             <Fingerprint size={20} color="var(--accent)" />
             CBP Automated Clearance Report
           </h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Scan Record ID: {result._id}</p>
+          <p className="text-secondary text-sm">Scan Record ID: {result._id}</p>
         </div>
         
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: '700', lineHeight: 1, color: result.riskLevel === 'HIGH' ? 'var(--danger)' : result.riskLevel === 'MEDIUM' ? 'var(--warning)' : 'var(--success)' }}>
-            {result.riskScore}<span style={{ fontSize: '1.2rem', opacity: 0.7 }}>/100</span>
+        <div className="text-right">
+          <div className={`text-[2.5rem] font-bold leading-none ${result.riskLevel === 'HIGH' ? 'text-danger' : result.riskLevel === 'MEDIUM' ? 'text-warning' : 'text-success'}`}>
+            {result.riskScore}<span className="text-xl opacity-70">/100</span>
           </div>
-          <span className={`badge ${result.riskLevel}`} style={{ marginTop: '8px', display: 'inline-block' }}>
+          <span className={`badge ${result.riskLevel} mt-2`}>
             {result.riskLevel} RISK
           </span>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
-        <div style={{ background: 'rgba(15, 23, 42, 0.4)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>Autoencoder Anomaly</p>
-          <div style={{ fontSize: '1.5rem', fontWeight: '600' }}>{(result.anomalyScore * 100).toFixed(1)}%</div>
-          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', marginTop: '8px', borderRadius: '2px' }}>
-            <div style={{ width: `${result.anomalyScore * 100}%`, height: '100%', background: 'var(--accent)', borderRadius: '2px' }}></div>
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="bg-slate-900/40 p-4 rounded-xl border border-border">
+          <p className="text-secondary text-sm mb-1">Autoencoder Anomaly</p>
+          <div className="text-2xl font-semibold">{(result.anomalyScore * 100).toFixed(1)}%</div>
+          <div className="w-full h-1 bg-white/10 mt-2 rounded">
+            <div className="h-full bg-accent rounded" style={{ width: `${result.anomalyScore * 100}%` }}></div>
           </div>
         </div>
-        <div style={{ background: 'rgba(15, 23, 42, 0.4)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '4px' }}>Manifest Mismatch</p>
-          <div style={{ fontSize: '1.5rem', fontWeight: '600' }}>{(result.mismatchScore * 100).toFixed(1)}%</div>
-          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', marginTop: '8px', borderRadius: '2px' }}>
-            <div style={{ width: `${result.mismatchScore * 100}%`, height: '100%', background: 'var(--warning)', borderRadius: '2px' }}></div>
+        <div className="bg-slate-900/40 p-4 rounded-xl border border-border">
+          <p className="text-secondary text-sm mb-1">Manifest Mismatch</p>
+          <div className="text-2xl font-semibold">{(result.mismatchScore * 100).toFixed(1)}%</div>
+          <div className="w-full h-1 bg-white/10 mt-2 rounded">
+            <div className="h-full bg-warning rounded" style={{ width: `${result.mismatchScore * 100}%` }}></div>
           </div>
         </div>
       </div>
 
-      <div style={{ marginBottom: '32px' }}>
-        <h4 style={{ fontSize: '1rem', fontWeight: '500', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="mb-8">
+        <h4 className="text-base font-medium mb-4 flex items-center gap-2">
           <ListChecks size={18} />
           Inference Reasoning
         </h4>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="flex flex-col gap-3">
           {result.explanation.map((exp, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '12px', background: 'rgba(59, 130, 246, 0.05)', borderRadius: '8px', borderLeft: '3px solid var(--accent)' }}>
-              <AlertTriangle size={16} color="var(--accent)" style={{ marginTop: '2px', flexShrink: 0 }} />
-              <p style={{ fontSize: '0.95rem', lineHeight: 1.5 }}>{exp}</p>
+            <div key={i} className="flex items-start gap-3 p-3 bg-blue-500/5 rounded-lg border-l-4 border-accent">
+              <AlertTriangle size={16} color="var(--accent)" className="mt-0.5 shrink-0" />
+              <p className="text-[0.95rem] leading-relaxed m-0">{exp}</p>
             </div>
           ))}
           {result.explanation.length === 0 && (
-             <p style={{ color: 'var(--text-secondary)' }}>No targeted reasoning generated.</p>
+             <p className="text-secondary">No targeted reasoning generated.</p>
           )}
         </div>
       </div>
 
       {/* Human In The Loop */}
-      <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '16px' }}>Officer Verification Protocol</p>
+      <div className="border-t border-border pt-6">
+        <p className="text-sm text-secondary mb-4">Officer Verification Protocol</p>
         
         {feedbackStored ? (
-          <div style={{ padding: '12px', background: 'rgba(16, 185, 129, 0.1)', color: '#6ee7b7', borderRadius: '8px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
+          <div className="p-3 bg-emerald-500/10 text-emerald-300 rounded-lg text-center border border-emerald-500/30">
             Feedback recorded successfully. Model will be fine-tuned.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-            <button className="glass-button" style={{ fontSize: '0.85rem', color: 'var(--success)' }} onClick={() => sendFeedback('ACCURATE')}>Confirm Flag</button>
-            <button className="glass-button" style={{ fontSize: '0.85rem', color: 'var(--warning)' }} onClick={() => sendFeedback('FALSE_POSITIVE')}>False Positive</button>
-            <button className="glass-button" style={{ fontSize: '0.85rem', color: 'var(--danger)' }} onClick={() => sendFeedback('FALSE_NEGATIVE')}>Missed Threat</button>
+          <div className="grid grid-cols-3 gap-3">
+            <button className="glass-button text-sm text-success" onClick={() => sendFeedback('ACCURATE')}>Confirm Flag</button>
+            <button className="glass-button text-sm text-warning" onClick={() => sendFeedback('FALSE_POSITIVE')}>False Positive</button>
+            <button className="glass-button text-sm text-danger" onClick={() => sendFeedback('FALSE_NEGATIVE')}>Missed Threat</button>
           </div>
         )}
       </div>

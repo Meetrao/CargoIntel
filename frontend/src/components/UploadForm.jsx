@@ -63,16 +63,16 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
   };
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ padding: '32px' }}>
-      <div style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: '600', marginBottom: '8px' }}>Automated X-Ray Ingestion</h3>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+    <div className="glass-panel animate-fade-in p-8">
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">Automated X-Ray Ingestion</h3>
+        <p className="text-secondary text-[0.95rem]">
           Scan and verify incoming cargo shipments against declared manifest records.
         </p>
       </div>
 
       <div 
-        className="upload-zone"
+        className="border-2 border-dashed border-slate-400/20 rounded-2xl py-14 px-8 text-center cursor-pointer transition-all duration-300 bg-slate-900/40 hover:border-accent hover:bg-blue-500/5 group"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
@@ -82,27 +82,27 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
           ref={fileInputRef} 
           onChange={handleFileChange} 
           accept="image/*" 
-          style={{ display: 'none' }} 
+          className="hidden" 
         />
         
         {!preview ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-            <div style={{ padding: '16px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '50%', color: 'var(--accent)' }}>
+          <div className="flex flex-col items-center gap-4">
+            <div className="p-4 bg-blue-500/10 rounded-full text-accent group-hover:bg-blue-500/20 transition-colors">
               <UploadCloud size={40} />
             </div>
             <div>
-              <p style={{ fontWeight: '500', fontSize: '1.1rem', marginBottom: '4px' }}>Click to upload or drag and drop</p>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>SVG, PNG, JPG or GIF (max. 10MB)</p>
+              <p className="font-medium text-lg mb-1">Click to upload or drag and drop</p>
+              <p className="text-secondary text-sm">SVG, PNG, JPG or GIF (max. 10MB)</p>
             </div>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+          <div className="flex flex-col items-center gap-4">
             <img 
               src={preview} 
               alt="Preview" 
-              style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'contain' }} 
+              className="max-w-full max-h-[200px] rounded-lg object-contain shadow-md" 
             />
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+            <div className="flex items-center gap-2 text-secondary text-sm">
               <FileImage size={16} />
               {file.name}
             </div>
@@ -111,18 +111,17 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
       </div>
 
       {error && (
-        <div style={{ marginTop: '20px', padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.9rem' }}>
+        <div className="mt-5 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-300 text-sm shadow-sm">
           {error}
         </div>
       )}
 
       {file && (
-        <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="mt-6 flex justify-end">
           <button 
-            className="glass-button primary" 
+            className="glass-button primary w-full" 
             onClick={handleAnalyze} 
             disabled={analyzing}
-            style={{ width: '100%' }}
           >
             {analyzing ? (
               <>
