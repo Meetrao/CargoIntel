@@ -1,29 +1,44 @@
 from ultralytics import YOLO
-import os
+from pathlib import Path
 
-model = YOLO(r"C:\Users\44184\runs\detect\pidray_v32\weights\best.pt")
+def main():
+    ROOT = Path(__file__).resolve().parent
+    model_path = ROOT / "best.pt"
 
-metrics = model.val(
-    data=r"C:\Users\44184\Desktop\project\Customs_and_Border_Security_model\pidray.yaml",
-    split='val',
-    conf=0.25,
-    iou=0.5,
-    augment=False,
-    save_json=True,
-    plots=True
-)
+    if not model_path.exists():
+        model_path = Path(r"C:\Users\44184\runs\detect\pidray_v5\weights\best.pt")
+        if not model_path.exists():
+            print(f"[ERROR] Model not found at {model_path}")
+            return
 
-print(f"\n{'='*50}")
-print(f"         HACKATHON RESULTS — PIDRAY v32")
-print(f"{'='*50}")
-print(f"mAP50:      {metrics.box.map50:.4f}")
-print(f"mAP50-95:   {metrics.box.map:.4f}")
-print(f"Precision:  {metrics.box.mp:.4f}")
-print(f"Recall:     {metrics.box.mr:.4f}")
-print(f"{'='*50}")
-print(f"\nPer-class AP:")
-for i, name in enumerate(model.names.values()):
-    print(f"  {name:12s}: AP50 = {metrics.box.ap50[i]:.4f}")
+    print(f"[INFO] Loading model from: {model_path}")
+    model = YOLO(str(model_path))
 
-print(f"\nConfusion matrix and plots saved to:")
-print(f"  {metrics.save_dir}")
+    metrics = model.val(
+        data=str(ROOT / "pidray.yaml"),
+        split='val',
+        conf=0.25,
+        iou=0.5,
+        augment=False,
+        save_json=True,
+        plots=True,
+        workers=4   # 🔥 IMPORTANT FIX
+    )
+
+    print(f"\n{'='*50}")
+    print(f"         HACKATHON RESULTS — PIDRAY")
+    print(f"{'='*50}")
+    print(f"mAP50:      {metrics.box.map50:.4f}")
+    print(f"mAP50-95:   {metrics.box.map:.4f}")
+    print(f"Precision:  {metrics.box.mp:.4f}")
+    print(f"Recall:     {metrics.box.mr:.4f}")
+    print(f"{'='*50}")
+
+    print(f"\nPer-class AP:")
+    for i, name in enumerate(model.names.values()):
+        print(f"  {name:12s}: AP50 = {metrics.box.ap50[i]:.4f}")
+
+    print(f"\nSaved to: {metrics.save_dir}")
+
+if __name__ == "__main__":
+    main()

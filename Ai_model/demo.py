@@ -9,7 +9,8 @@ Capabilities:
   ✅ Object Detection with Bounding Boxes
   ✅ Object Classification (Prohibited / Restricted / Dual-Use)
   ✅ Heatmap over Suspicious Regions
-  ✅ Confidence Score & Risk Score (0–100)
+  ✅ Pessimistic Risk Scoring (security-first model)
+  ✅ Confidence Floor for Critical Items (Gun always >= CRITICAL)
   ✅ Inference Reasoning & Officer Recommendation
   ✅ Image Comparison (Manifest Tampering Detection)
   ✅ Analyst Dashboard Interface
@@ -35,25 +36,30 @@ from collections import Counter
 # ──────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ──────────────────────────────────────────────────────────────────
+SCRIPT_DIR = Path(__file__).resolve().parent
+MODEL_PATH = SCRIPT_DIR / "best.pt"
 
-# ⚠️ SWAP THIS after training finishes:
-# MODEL_PATH = "yolov8s.pt"
-MODEL_PATH = r"C:\Users\44184\runs\detect\pidray_v32\weights\best.pt"
+if not MODEL_PATH.exists():
+    MODEL_PATH = r"C:\Users\44184\runs\detect\focused_finetune\weights\best.pt"
+    if not Path(MODEL_PATH).exists():
+        MODEL_PATH = r"C:\Users\44184\runs\detect\final_round2\weights\best.pt"
+        if not Path(MODEL_PATH).exists():
+            MODEL_PATH = r"C:\Users\44184\runs\detect\pidray_v32\weights\best.pt"
+            if not Path(MODEL_PATH).exists():
+                MODEL_PATH = "yolov8s.pt"
 
-DEFAULT_CONF   = 0.10
+DEFAULT_CONF   = 0.03   # low threshold — catches hidden guns/knives
 DEFAULT_IOU    = 0.45
 HEATMAP_ALPHA  = 0.45
 DIFF_THRESHOLD = 30
-
-# Scan log CSV path — saved in same folder as demo.py
-SCAN_LOG_PATH  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scan_log.csv")
+SCAN_LOG_PATH  = str(SCRIPT_DIR / "scan_log.csv")
 
 
 # ──────────────────────────────────────────────────────────────────
 # MODEL LOAD
 # ──────────────────────────────────────────────────────────────────
 print(f"[INFO] Loading model: {MODEL_PATH}")
-model = YOLO(MODEL_PATH)
+model = YOLO(str(MODEL_PATH))
 print(f"[INFO] Model loaded. Classes: {list(model.names.values())}")
 
 
@@ -80,7 +86,7 @@ THREAT_DB = {
         ),
     },
     "Knife": {
-        "level": "HIGH", "score": 80,
+        "level": "HIGH", "score": 85,
         "color_bgr": (0, 80, 220),
         "reason": (
             "Bladed weapon detected. Classified as prohibited assault "
@@ -154,9 +160,22 @@ THREAT_DB = {
     },
 }
 
+# ── PESSIMISTIC SECURITY SCORING FLOORS ───────────────────────────
+# These ensure critical threats ALWAYS score high enough to be flagged
+# regardless of how low the model confidence is.
+# Rationale: missing a real gun is catastrophically worse than a false alarm.
+SCORE_FLOORS = {
+    "Gun":    80,   # Always CRITICAL minimum — any gun detection = detain
+    "Bullet": 75,   # Always CRITICAL minimum
+    "Knife":  60,   # Always HIGH minimum
+    "Baton":  55,   # Always HIGH minimum
+}
+
+CRITICAL_CLASSES = {"Gun", "Bullet", "Knife", "Baton"}
+
 # Fallback for base yolov8s.pt COCO classes (testing only)
 COCO_FALLBACK = {
-    "knife":    {"level": "HIGH",     "score": 80,  "color_bgr": (0, 80, 220),  "reason": "Bladed weapon detected."},
+    "knife":    {"level": "HIGH",     "score": 85,  "color_bgr": (0, 80, 220),  "reason": "Bladed weapon detected."},
     "gun":      {"level": "CRITICAL", "score": 100, "color_bgr": (0, 0, 220),   "reason": "Firearm detected."},
     "scissors": {"level": "MEDIUM",   "score": 45,  "color_bgr": (0, 200, 200), "reason": "Sharp implement detected."},
 }
@@ -186,13 +205,54 @@ def risk_emoji(score):
 
 
 # ──────────────────────────────────────────────────────────────────
+# PESSIMISTIC RISK SCORE CALCULATOR
+# ──────────────────────────────────────────────────────────────────
+def calculate_wscore(threat, conf, class_name):
+    """
+    Security-first scoring model.
+
+    OLD (broken): score = base x conf
+      Gun at 31% conf = 31 = LOW CLEARED  <-- DANGEROUS
+
+    NEW (fixed):
+      CRITICAL: score = base x (0.4 + 0.6 x conf)
+        Gun at 31%: 100 x (0.4 + 0.186) = 58.6 -> HIGH FLAG
+        Gun at 10%: 100 x (0.4 + 0.06)  = 46   -> MEDIUM FLAG
+        Gun at 85%: 100 x (0.4 + 0.51)  = 91   -> CRITICAL
+
+      HIGH: score = base x (0.3 + 0.7 x conf)
+        Knife at 31%: 85 x (0.3 + 0.217) = 43.9 -> MEDIUM FLAG
+
+      LOW/MEDIUM: unchanged (standard formula)
+
+    Then SCORE_FLOORS applied as absolute minimum.
+    """
+    level = threat["level"]
+    base  = threat["score"]
+
+    if level == "CRITICAL":
+        wscore = base * (0.4 + 0.6 * conf)
+    elif level == "HIGH":
+        wscore = base * (0.3 + 0.7 * conf)
+    else:
+        wscore = base * conf
+
+    wscore = round(wscore, 1)
+
+    # Apply hard floor
+    floor   = SCORE_FLOORS.get(class_name, 0)
+    flagged = ""
+    if wscore < floor:
+        wscore  = float(floor)
+        flagged = " (floor-applied)"
+
+    return wscore, flagged
+
+
+# ──────────────────────────────────────────────────────────────────
 # SCAN AUDIT LOG
 # ──────────────────────────────────────────────────────────────────
 def log_scan(detections, risk_score, decision):
-    """
-    Appends one row to scan_log.csv for every analysis run.
-    Columns: Timestamp | Detections | Risk Score | Decision | Item Count
-    """
     file_exists = os.path.exists(SCAN_LOG_PATH)
     with open(SCAN_LOG_PATH, "a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -209,9 +269,6 @@ def log_scan(detections, risk_score, decision):
 
 
 def load_scan_stats():
-    """
-    Reads scan_log.csv and returns summary statistics string.
-    """
     if not os.path.exists(SCAN_LOG_PATH):
         return "No scans logged yet. Run some analyses first."
 
@@ -249,10 +306,10 @@ def load_scan_stats():
         f"  Flagged (HIGH+CRIT)  : {flagged} ({flag_pct:.1f}%)",
         "",
         "  Risk Level Breakdown:",
-        f"    🔴 CRITICAL          : {critical} scans",
-        f"    🟠 HIGH              : {high} scans",
-        f"    🟡 MEDIUM            : {medium} scans",
-        f"    🟢 LOW               : {low} scans",
+        f"    CRITICAL             : {critical} scans",
+        f"    HIGH                 : {high} scans",
+        f"    MEDIUM               : {medium} scans",
+        f"    LOW                  : {low} scans",
         "",
         "  Most Detected Items:",
     ]
@@ -262,11 +319,7 @@ def load_scan_stats():
     else:
         lines.append("    No items detected yet.")
 
-    lines += [
-        "",
-        f"  Log File : {SCAN_LOG_PATH}",
-        "=" * 44,
-    ]
+    lines += ["", f"  Log File : {SCAN_LOG_PATH}", "=" * 44]
     return "\n".join(lines)
 
 
@@ -291,11 +344,11 @@ def preprocess_xray(image_pil):
         "PREPROCESSING APPLIED\n"
         "─────────────────────────────────────────\n"
         "1. CLAHE (Contrast Limited Adaptive Histogram Equalisation)\n"
-        "   → Enhances local contrast in dense cargo regions\n\n"
-        "2. Unsharp Mask  (σ=3, weight=1.5)\n"
-        "   → Sharpens weapon outlines and object boundaries\n\n"
-        "3. Gamma Correction  (γ=1.2)\n"
-        "   → Brightens dark X-ray backgrounds without overexposure"
+        "   -> Enhances local contrast in dense cargo regions\n\n"
+        "2. Unsharp Mask  (sigma=3, weight=1.5)\n"
+        "   -> Sharpens weapon outlines and object boundaries\n\n"
+        "3. Gamma Correction  (gamma=1.2)\n"
+        "   -> Brightens dark X-ray backgrounds without overexposure"
     )
     return enhanced_pil, report
 
@@ -332,7 +385,7 @@ def generate_heatmap(image_pil, boxes_data):
 
 
 # ──────────────────────────────────────────────────────────────────
-# MODULE 3 — MAIN ANALYSIS PIPELINE
+# MODULE 3 — OFFICER RECOMMENDATION
 # ──────────────────────────────────────────────────────────────────
 def get_recommendation(score, detections):
     names = ", ".join(d["name"] for d in detections)
@@ -364,6 +417,9 @@ def get_recommendation(score, detections):
     )
 
 
+# ──────────────────────────────────────────────────────────────────
+# MODULE 4 — MAIN ANALYSIS PIPELINE
+# ──────────────────────────────────────────────────────────────────
 def analyze_image(image_pil, conf_threshold=DEFAULT_CONF, iou_threshold=DEFAULT_IOU):
     if image_pil is None:
         return None, None, None, "No image.", "No image.", "No image."
@@ -372,21 +428,48 @@ def analyze_image(image_pil, conf_threshold=DEFAULT_CONF, iou_threshold=DEFAULT_
     results    = model(np.array(enhanced_pil), conf=conf_threshold, iou=iou_threshold)[0]
     detect_img = Image.fromarray(results.plot())
 
+    # ── No detections branch ──────────────────────────────────────
     if len(results.boxes) == 0:
-        decision  = risk_decision(0)
-        no_threat = (
-            "✅ No suspicious items detected.\n\n"
-            "Risk Score : 0 / 100\n"
-            f"Decision   : 🟢 {decision}"
-        )
-        log_scan([], 0, decision)
-        return (
-            enhanced_pil, detect_img, enhanced_pil,
-            pre_report, no_threat,
-            "No prohibited or restricted items found.\n"
-            "Shipment cleared. No officer action required."
-        )
+        img_arr  = np.array(enhanced_pil.convert("L"))
+        mean_px  = float(img_arr.mean())
+        is_dense = mean_px < 180
 
+        if is_dense:
+            sus_score = 65
+            decision  = risk_decision(sus_score)
+            no_threat = (
+                "WARNING: NO OBJECTS DETECTED — BUT IMAGE IS DENSE\n\n"
+                "The model found no labelled items, however this image\n"
+                "shows dense cargo characteristics (low pixel brightness)\n"
+                "which may indicate concealed or overlapping items.\n\n"
+                f"Risk Score : {sus_score} / 100\n"
+                f"Decision   : {risk_emoji(sus_score)} {decision}"
+            )
+            log_scan([], sus_score, decision)
+            return (
+                enhanced_pil, detect_img, enhanced_pil,
+                pre_report, no_threat,
+                "SUSPICIOUS — Dense cargo, no clear detection.\n"
+                "  1. Do NOT auto-clear this shipment.\n"
+                "  2. Assign to manual inspection queue.\n"
+                "  3. Dense/overlapping cargo may be concealing prohibited items."
+            )
+        else:
+            decision  = risk_decision(0)
+            no_threat = (
+                "No suspicious items detected.\n\n"
+                "Risk Score : 0 / 100\n"
+                f"Decision   : {risk_emoji(0)} {decision}"
+            )
+            log_scan([], 0, decision)
+            return (
+                enhanced_pil, detect_img, enhanced_pil,
+                pre_report, no_threat,
+                "No prohibited or restricted items found.\n"
+                "Shipment cleared. No officer action required."
+            )
+
+    # ── Detection branch ──────────────────────────────────────────
     detections = []
     boxes_data = []
     max_score  = 0.0
@@ -396,20 +479,26 @@ def analyze_image(image_pil, conf_threshold=DEFAULT_CONF, iou_threshold=DEFAULT_
         conf   = float(box.conf)
         xyxy   = box.xyxy[0].tolist()
         threat = get_threat(name)
-        wscore = threat["score"] * conf
+
+        # ── FIXED PESSIMISTIC SCORING ─────────────────────────────
+        wscore, floor_flag = calculate_wscore(threat, conf, name)
+        # ---------------------------------------------------------
+
+        max_score = max(max_score, wscore)
+
         detections.append({
-            "name": name, "conf": conf,
-            "level": threat["level"],
-            "score": wscore,
+            "name":   name,
+            "conf":   conf,
+            "level":  threat["level"] + floor_flag,
+            "score":  wscore,
             "reason": threat["reason"],
         })
         boxes_data.append({
             "x1": xyxy[0], "y1": xyxy[1],
             "x2": xyxy[2], "y2": xyxy[3],
-            "score": wscore,
+            "score":     wscore,
             "color_bgr": threat["color_bgr"],
         })
-        max_score = max(max_score, wscore)
 
     detections.sort(key=lambda d: d["score"], reverse=True)
     heatmap_img = generate_heatmap(enhanced_pil, boxes_data)
@@ -417,16 +506,25 @@ def analyze_image(image_pil, conf_threshold=DEFAULT_CONF, iou_threshold=DEFAULT_
     emoji    = risk_emoji(max_score)
     decision = risk_decision(max_score)
 
-    summary = [f"⚠️  {len(detections)} ITEM(S) DETECTED", "─" * 42]
+    # ── Risk summary ──────────────────────────────────────────────
+    summary = [f"  {len(detections)} ITEM(S) DETECTED", "─" * 46]
     for d in detections:
-        summary.append(f"  {d['level']:8s} | {d['name']:12s} | {d['conf']:.1%} confidence")
+        summary.append(
+            f"  {d['level']:22s} | {d['name']:12s} | "
+            f"conf {d['conf']:.1%} | score {d['score']:.0f}/100"
+        )
     summary += [
-        "─" * 42,
+        "─" * 46,
         f"Risk Score : {max_score:.0f} / 100",
         f"Decision   : {emoji} {decision}",
+        "",
+        "Scoring model: pessimistic security-first.",
+        "Critical threats receive confidence floors —",
+        "even low-confidence gun detections are flagged CRITICAL.",
     ]
 
-    reasoning = ["INFERENCE REASONING", "=" * 42]
+    # ── Reasoning report ──────────────────────────────────────────
+    reasoning = ["INFERENCE REASONING", "=" * 46]
     for i, d in enumerate(detections, 1):
         reasoning.append(
             f"\n[{i}] {d['name']}  |  {d['level']}  |  {d['conf']:.1%} confidence\n"
@@ -434,12 +532,11 @@ def analyze_image(image_pil, conf_threshold=DEFAULT_CONF, iou_threshold=DEFAULT_
             f"    Reason     : {d['reason']}"
         )
     reasoning += [
-        "\n" + "─" * 42,
+        "\n" + "─" * 46,
         "OFFICER RECOMMENDATION:",
         get_recommendation(max_score, detections),
     ]
 
-    # ── Log this scan to CSV ──
     log_scan(detections, max_score, decision)
 
     return (
@@ -451,7 +548,7 @@ def analyze_image(image_pil, conf_threshold=DEFAULT_CONF, iou_threshold=DEFAULT_
 
 
 # ──────────────────────────────────────────────────────────────────
-# MODULE 4 — IMAGE COMPARISON PIPELINE
+# MODULE 5 — IMAGE COMPARISON PIPELINE
 # ──────────────────────────────────────────────────────────────────
 def compare_images(img_a_pil, img_b_pil, conf_threshold=DEFAULT_CONF):
     if img_a_pil is None or img_b_pil is None:
@@ -493,16 +590,16 @@ def compare_images(img_a_pil, img_b_pil, conf_threshold=DEFAULT_CONF):
         "",
     ]
     if new_items:
-        lines.append(f"⚠️  NEW in Scan B (undeclared) : {', '.join(new_items)}")
+        lines.append(f"  NEW in Scan B (undeclared) : {', '.join(new_items)}")
     if missing_items:
-        lines.append(f"❌  MISSING from Scan B        : {', '.join(missing_items)}")
+        lines.append(f"  MISSING from Scan B        : {', '.join(missing_items)}")
     if common_items:
-        lines.append(f"✅  Consistent in both scans   : {', '.join(common_items)}")
+        lines.append(f"  Consistent in both scans   : {', '.join(common_items)}")
     if not risk_flag:
-        lines.append("✅  No item differences detected between scans.")
+        lines.append("  No item differences detected between scans.")
     lines += [
         "", "─" * 42,
-        f"TAMPERING RISK : {'⚠️  HIGH — Discrepancy detected' if risk_flag else '✅ LOW — Scans consistent'}",
+        f"TAMPERING RISK : {'HIGH — Discrepancy detected' if risk_flag else 'LOW — Scans consistent'}",
         "",
         "ANOMALY MAP: Bright regions show significant pixel-level",
         "changes between the two scans.",
@@ -522,7 +619,7 @@ with gr.Blocks(css=CSS, title="Cargo X-Ray Inspector") as app:
 
     gr.Markdown(
         """
-        # 🛃 CARGO X-RAY INSPECTOR
+        # CARGO X-RAY INSPECTOR
         ### AI-Powered Prohibited Item Detection — Customs & Border Security
         *YOLOv8s fine-tuned on PIDray · 124,486 X-ray Images · 12 Prohibited Item Categories*
         ---
@@ -531,19 +628,25 @@ with gr.Blocks(css=CSS, title="Cargo X-Ray Inspector") as app:
     )
 
     # ── TAB 1: Threat Analysis ─────────────────────────────────────
-    with gr.Tab("🔍 Threat Analysis"):
-        gr.Markdown("Upload a cargo X-ray. The system preprocesses it, detects threats, generates a heatmap, and produces a full officer report.")
+    with gr.Tab("Threat Analysis"):
+        gr.Markdown(
+            "Upload a cargo X-ray. The system preprocesses it, detects threats, "
+            "generates a heatmap, and produces a full officer report."
+        )
         with gr.Row():
             with gr.Column(scale=1):
-                inp_img = gr.Image(type="pil", label="📥 Upload X-Ray Image")
-                conf_sl = gr.Slider(0.10, 0.90, DEFAULT_CONF, step=0.05, label="Confidence Threshold")
-                iou_sl  = gr.Slider(0.10, 0.90, DEFAULT_IOU,  step=0.05, label="IoU Threshold (NMS)")
-                run_btn = gr.Button("🚨 RUN THREAT ANALYSIS", variant="primary", size="lg")
+                inp_img = gr.Image(type="pil", label="Upload X-Ray Image")
+                conf_sl = gr.Slider(
+                    0.03, 0.90, DEFAULT_CONF, step=0.05,
+                    label="Confidence Threshold (lower = catches more hidden items)"
+                )
+                iou_sl  = gr.Slider(0.10, 0.90, DEFAULT_IOU, step=0.05, label="IoU Threshold (NMS)")
+                run_btn = gr.Button("RUN THREAT ANALYSIS", variant="primary", size="lg")
             with gr.Column(scale=2):
                 with gr.Row():
-                    pre_out = gr.Image(label="1️⃣  Preprocessed Image")
-                    det_out = gr.Image(label="2️⃣  Bounding Box Detection")
-                    hm_out  = gr.Image(label="3️⃣  Threat Heatmap")
+                    pre_out = gr.Image(label="1. Preprocessed Image")
+                    det_out = gr.Image(label="2. Bounding Box Detection")
+                    hm_out  = gr.Image(label="3. Threat Heatmap")
         with gr.Row():
             pre_txt  = gr.Textbox(label="Preprocessing Steps",                  lines=8, elem_classes="risk-box")
             risk_txt = gr.Textbox(label="Risk Summary",                         lines=8, elem_classes="risk-box")
@@ -555,17 +658,20 @@ with gr.Blocks(css=CSS, title="Cargo X-Ray Inspector") as app:
         )
 
     # ── TAB 2: Cargo Comparison ────────────────────────────────────
-    with gr.Tab("🔄 Cargo Comparison"):
-        gr.Markdown("Compare two X-ray scans to detect **manifest tampering**, item substitution, or undeclared additions.")
+    with gr.Tab("Cargo Comparison"):
+        gr.Markdown(
+            "Compare two X-ray scans to detect manifest tampering, "
+            "item substitution, or undeclared additions."
+        )
         with gr.Row():
-            ca = gr.Image(type="pil", label="📦 Scan A — Reference")
-            cb = gr.Image(type="pil", label="📦 Scan B — Comparison")
-        conf_sl2 = gr.Slider(0.10, 0.90, DEFAULT_CONF, step=0.05, label="Confidence Threshold")
-        cmp_btn  = gr.Button("🔄 COMPARE SCANS", variant="primary", size="lg")
+            ca = gr.Image(type="pil", label="Scan A — Reference")
+            cb = gr.Image(type="pil", label="Scan B — Comparison")
+        conf_sl2 = gr.Slider(0.03, 0.90, DEFAULT_CONF, step=0.05, label="Confidence Threshold")
+        cmp_btn  = gr.Button("COMPARE SCANS", variant="primary", size="lg")
         with gr.Row():
             ca_out = gr.Image(label="Scan A — Detections")
             cb_out = gr.Image(label="Scan B — Detections")
-            df_out = gr.Image(label="🌡️  Pixel Difference Map")
+            df_out = gr.Image(label="Pixel Difference Map")
         cmp_txt = gr.Textbox(label="Comparison Report", lines=14, elem_classes="risk-box")
         cmp_btn.click(
             fn=compare_images,
@@ -573,16 +679,16 @@ with gr.Blocks(css=CSS, title="Cargo X-Ray Inspector") as app:
             outputs=[ca_out, cb_out, df_out, cmp_txt],
         )
 
-    # ── TAB 3: Scan Audit Log & Statistics ────────────────────────
-    with gr.Tab("📊 Scan Statistics"):
-        gr.Markdown("Live statistics from all scans run in this session. Every scan is auto-logged to a CSV file.")
-        refresh_btn = gr.Button("🔄 Refresh Statistics", variant="secondary")
+    # ── TAB 3: Scan Statistics ─────────────────────────────────────
+    with gr.Tab("Scan Statistics"):
+        gr.Markdown("Live statistics from all scans. Every scan is auto-logged to a CSV file.")
+        refresh_btn = gr.Button("Refresh Statistics", variant="secondary")
         stats_out   = gr.Textbox(label="Session Statistics", lines=20, elem_classes="risk-box")
-        gr.Markdown(f"📁 **Audit log auto-saved to:** `{SCAN_LOG_PATH}`")
+        gr.Markdown(f"Audit log auto-saved to: `{SCAN_LOG_PATH}`")
         refresh_btn.click(fn=load_scan_stats, inputs=[], outputs=[stats_out])
 
     # ── TAB 4: System Info ─────────────────────────────────────────
-    with gr.Tab("ℹ️ System Info"):
+    with gr.Tab("System Info"):
         gr.Markdown("""
         ## System Configuration
 
@@ -594,32 +700,35 @@ with gr.Blocks(css=CSS, title="Cargo X-Ray Inspector") as app:
         | Test Images | 47,573 |
         | Prohibited Categories | 12 |
         | Hardware | NVIDIA RTX 3050 4GB VRAM |
-        | Training Epochs | 6 |
         | Batch Size | 12 |
-        | Image Size | 640×640 |
+        | Image Size | 640x640 |
 
         ## Threat Classification
 
-        | Level | Score Range | Items | Officer Action |
+        | Level | Score | Items | Officer Action |
         |---|---|---|---|
-        | 🔴 CRITICAL | 80–100 | Gun, Bullet | Detain + Law Enforcement |
-        | 🟠 HIGH | 60–79 | Knife, Baton | Manual Inspection Queue |
-        | 🟡 MEDIUM | 35–59 | HandCuffs, Scissors | Manifest Verification |
-        | 🟢 LOW | 0–34 | Tools, Powerbank, Sprayer, Lighter | Log & Clear |
+        | CRITICAL | 80-100 | Gun, Bullet | Detain + Law Enforcement |
+        | HIGH | 60-79 | Knife, Baton | Manual Inspection Queue |
+        | MEDIUM | 35-59 | HandCuffs, Scissors | Manifest Verification |
+        | LOW | 0-34 | Tools, Powerbank, Sprayer, Lighter | Log and Clear |
 
-        ## Preprocessing Pipeline
-        1. **CLAHE** — Adaptive histogram equalisation (local contrast enhancement)
-        2. **Unsharp Mask** — Edge sharpening for weapon outline clarity
-        3. **Gamma Correction (γ=1.2)** — Background brightness normalisation
+        ## Pessimistic Security Scoring
+
+        **The problem with standard AI scoring:**
+        Risk = Base x Confidence → Gun at 31% confidence = score 31 = LOW CLEARED (dangerous)
+
+        **Our security model:**
+        - CRITICAL items: score = base x (0.4 + 0.6 x conf)
+          → Gun at 31% = 58.6 → HIGH FLAG
+          → Gun at 10% = 46 → MEDIUM FLAG
+        - HIGH items: score = base x (0.3 + 0.7 x conf)
+        - LOW items: standard formula unchanged
+        - Hard floors: Gun >= 80, Bullet >= 75, Knife >= 60, Baton >= 55
+
+        This ensures critical threats are never automatically cleared.
 
         ## Detectable Items
-        `Gun` `Bullet` `Knife` `Baton` `HandCuffs` `Scissors`
-        `Wrench` `Pliers` `Hammer` `Sprayer` `Powerbank` `Lighter`
-
-        ## Risk Score Formula
-        `Risk Score = Threat Base Score × Detection Confidence`
-
-        Example: Gun (base 100) detected at 85% confidence → Score = 85/100
+        Gun | Bullet | Knife | Baton | HandCuffs | Scissors | Wrench | Pliers | Hammer | Sprayer | Powerbank | Lighter
         """)
 
 

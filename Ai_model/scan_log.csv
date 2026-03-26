@@ -7,3 +7,10 @@ Timestamp,Detections,Risk Score,Decision,Item Count
 2026-03-26 18:20:31,Bullet,86,CRITICAL — DETAIN CARGO IMMEDIATELY,1
 2026-03-26 18:21:16,None,0,LOW     — CLEARED (Log Only),0
 2026-03-26 18:21:44,Baton,65,HIGH    — FLAG FOR INSPECTION,1
+2026-03-26 20:33:49,"Sprayer, Lighter, Sprayer",27,LOW     — CLEARED (Log Only),3
+2026-03-26 20:42:28,"Sprayer, Lighter, Sprayer",27,LOW     — CLEARED (Log Only),3
+2026-03-26 20:42:37,"Sprayer, Lighter",27,LOW     — CLEARED (Log Only),2
+2026-03-26 20:45:15,Lighter,1,LOW     — CLEARED (Log Only),1
+2026-03-26 20:47:50,None,0,LOW     — CLEARED (Log Only),0
+2026-03-26 21:21:16,Lighter,1,LOW     — CLEARED (Log Only),1
+2026-03-26 21:37:38,"Gun, Gun, Gun, Gun, Hammer, Scissors, Scissors",70,HIGH    — FLAG FOR INSPECTION,7

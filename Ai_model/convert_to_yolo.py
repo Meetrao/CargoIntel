@@ -35,7 +35,8 @@ def convert(json_path, output_labels_dir):
     for cat in coco['categories']:
         print(f"  {cat_to_idx[cat['id']]}: {cat['name']}")
 
-BASE = r"C:\Users\44184\Desktop\project\Customs_and_Border_Security_model"
+# Use script directory as base (works everywhere relative paths are from Ai_model folder)
+BASE = Path(__file__).resolve().parent
 
-convert(f"{BASE}/annotation/train.json", f"{BASE}/labels/train")
-convert(f"{BASE}/annotation/test.json",  f"{BASE}/labels/test")
+convert(str(BASE / "annotation" / "train.json"), str(BASE / "labels" / "train"))
+convert(str(BASE / "annotation" / "test.json"),  str(BASE / "labels" / "test"))

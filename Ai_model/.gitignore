@@ -43,3 +43,4 @@ wandb/
 images/
 annotation/
 labels/
+critical_items_dataset/
