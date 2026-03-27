@@ -1,14 +1,9 @@
-<<<<<<< HEAD
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-=======
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
->>>>>>> 74b96d6be8d8a044812a8e3678fac28b7e229c94
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-<<<<<<< HEAD
 :root {
   --bg-obsidian: #05070a;
   --bg-sidebar: #0a0c10;
@@ -31,17 +26,10 @@
     padding: 0;
     overflow: hidden;
     font-family: 'Outfit', 'Inter', sans-serif;
-=======
-@layer base {
-  body {
-    @apply font-sans bg-background text-primary min-h-screen flex flex-col m-0 p-0 box-border;
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
->>>>>>> 74b96d6be8d8a044812a8e3678fac28b7e229c94
   }
 }
 
 @layer components {
-<<<<<<< HEAD
   .sidebar-nav-item {
     @apply flex items-center gap-4 px-6 py-4 text-text-dim hover:text-white hover:bg-white/5 transition-all duration-300 relative font-medium uppercase tracking-[0.15em] text-[0.7rem];
   }
@@ -117,36 +105,4 @@
 
 .animate-scan {
   animation: scan-line 3s linear infinite;
-=======
-  .glass-panel {
-    @apply bg-surface backdrop-blur-md border border-border rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
-  }
-
-  .glass-button {
-    @apply bg-blue-500/10 border border-blue-500/30 text-accent rounded-lg px-5 py-2.5 font-semibold cursor-pointer transition-all duration-300 backdrop-blur-sm inline-flex items-center justify-center gap-2 hover:bg-blue-500/20 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(59,130,246,0.2)];
-  }
-
-  .glass-button.primary {
-    @apply bg-accent text-white border-accent hover:bg-accent-hover;
-  }
-
-  .badge {
-    @apply px-3 py-1.5 rounded-md text-[0.85rem] font-semibold uppercase tracking-wide inline-block;
-  }
-
-  .badge.HIGH { @apply bg-red-500/15 text-red-300 border border-red-500/30; }
-  .badge.MEDIUM { @apply bg-amber-500/15 text-amber-300 border border-amber-500/30; }
-  .badge.LOW { @apply bg-emerald-500/15 text-emerald-300 border border-emerald-500/30; }
-}
-
-@layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.4s ease forwards;
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
->>>>>>> 74b96d6be8d8a044812a8e3678fac28b7e229c94
 }
