@@ -1,7 +1,8 @@
 from ultralytics import YOLO
+from pathlib import Path
 
 if __name__ == "__main__":
-    model = YOLO("C:/Users/44184/runs/detect/pidray_v5/weights/best.pt")
+    model = YOLO(str(Path(__file__).resolve().parent / "best.pt"))
 
     model.train(
     data="focused.yaml",

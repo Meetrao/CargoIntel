@@ -36,31 +36,20 @@ from collections import Counter
 # ──────────────────────────────────────────────────────────────────
 # CONFIGURATION
 # ──────────────────────────────────────────────────────────────────
-SCRIPT_DIR = Path(__file__).resolve().parent
-MODEL_PATH = SCRIPT_DIR / "best.pt"
-
-if not MODEL_PATH.exists():
-    MODEL_PATH = r"C:\Users\44184\runs\detect\focused_finetune\weights\best.pt"
-    if not Path(MODEL_PATH).exists():
-        MODEL_PATH = r"C:\Users\44184\runs\detect\final_round2\weights\best.pt"
-        if not Path(MODEL_PATH).exists():
-            MODEL_PATH = r"C:\Users\44184\runs\detect\pidray_v32\weights\best.pt"
-            if not Path(MODEL_PATH).exists():
-                MODEL_PATH = "yolov8s.pt"
+MODEL_PATH = Path(__file__).resolve().parent / "best.pt"
 
 DEFAULT_CONF   = 0.03   # low threshold — catches hidden guns/knives
 DEFAULT_IOU    = 0.45
 HEATMAP_ALPHA  = 0.45
 DIFF_THRESHOLD = 30
-SCAN_LOG_PATH  = str(SCRIPT_DIR / "scan_log.csv")
-
-
+SCAN_LOG_PATH = "scan_log.csv"
 # ──────────────────────────────────────────────────────────────────
 # MODEL LOAD
 # ──────────────────────────────────────────────────────────────────
 print(f"[INFO] Loading model: {MODEL_PATH}")
 model = YOLO(str(MODEL_PATH))
 print(f"[INFO] Model loaded. Classes: {list(model.names.values())}")
+print(f"[MODEL ACTUALLY LOADED]: {MODEL_PATH}")
 
 
 # ──────────────────────────────────────────────────────────────────
