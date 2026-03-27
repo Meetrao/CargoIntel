@@ -6,7 +6,7 @@ def main():
     model_path = ROOT / "best.pt"
 
     if not model_path.exists():
-        model_path = Path(r"C:\Users\44184\runs\detect\pidray_v5\weights\best.pt")
+        model_path = Path(__file__).resolve().parent / "best.pt"
         if not model_path.exists():
             print(f"[ERROR] Model not found at {model_path}")
             return
