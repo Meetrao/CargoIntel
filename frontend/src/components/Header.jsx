@@ -1,51 +1,56 @@
 import React from 'react';
-import { Bell, Shield, User, Settings2 } from 'lucide-react';
+import { Shield, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
+  const { currentUser, role, logout } = useAuth();
   const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
   
   return (
-    <header className="h-[80px] bg-obsidian border-b border-white/5 flex items-center justify-between px-10 shrink-0">
-      <div className="flex items-center gap-10">
-        <div className="flex flex-col gap-1">
-          <span className="text-[0.65rem] font-bold text-text-dim uppercase tracking-[0.2em]">Scanner Online</span>
+    <header className="h-[64px] bg-white border-b border-[#D1D9E0] flex items-center justify-between px-8 shrink-0">
+      <div className="flex items-center gap-8">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[0.55rem] font-semibold text-[#718096] uppercase tracking-[0.2em]">Scanner Online</span>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white tracking-widest uppercase">ID: 8829-X</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-accent-cyan animate-pulse" />
+            <span className="text-xs font-semibold text-gov-navy tracking-widest uppercase">ID: 8829-X</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-gov-green" />
           </div>
         </div>
         
-        <div className="h-8 w-[1px] bg-white/5 mx-2" />
+        <div className="h-7 w-px bg-[#D1D9E0]" />
         
-        <div className="flex flex-col gap-1">
-          <span className="text-[0.6rem] font-bold text-text-dim uppercase tracking-[0.2em]">Live Stream: {currentTime} UTC</span>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Shield size={14} className="text-accent-cyan" />
-              <span className="text-[0.65rem] font-bold text-accent-cyan uppercase tracking-widest">Protocol Secured</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[0.55rem] font-medium text-[#718096] uppercase tracking-[0.18em]">Live Stream: {currentTime} UTC</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+               <Shield size={12} className="text-gov-accent" />
+               <span className="text-[0.6rem] font-semibold text-gov-navy uppercase tracking-widest">Protocol Secured</span>
             </div>
-            <span className="text-[0.6rem] text-text-dim font-bold uppercase tracking-[0.15em]">AI Agent V4.2.0-Stable</span>
+            <span className="text-[0.55rem] text-[#718096] font-medium uppercase tracking-[0.12em]">AI Agent V4.2.0-Stable</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-8">
-        <button className="text-text-dim hover:text-white transition-colors relative p-2">
-          <Bell size={18} />
-          <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-accent-red" />
-        </button>
-        <button className="text-text-dim hover:text-white transition-colors p-2">
-          <Settings2 size={18} />
-        </button>
-        <div className="flex items-center gap-4 pl-4 border-l border-white/5">
-          <div className="flex flex-col items-end">
-            <span className="text-xs font-bold text-white uppercase tracking-tight">Meet Rao</span>
-            <span className="text-[0.65rem] font-bold text-text-dim uppercase tracking-widest">Senior Analyst 8829</span>
+      <div className="flex items-center gap-6">
+        {currentUser && (
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <span className="text-xs font-bold text-gov-navy">{currentUser.email}</span>
+              <span className="text-[0.55rem] font-bold uppercase tracking-widest text-gov-accent bg-blue-50 px-2 py-0.5 rounded mt-0.5">
+                Role: {role || 'Unknown'}
+              </span>
+            </div>
+            <div className="h-6 w-px bg-[#D1D9E0]" />
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 text-[#718096] hover:text-accent-red transition-colors text-[0.65rem] font-bold uppercase tracking-widest"
+              title="Logout"
+            >
+              <LogOut size={16} />
+              End Session
+            </button>
           </div>
-          <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-text-dim">
-            <User size={20} />
-          </div>
-        </div>
+        )}
       </div>
     </header>
   );

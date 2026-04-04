@@ -4,67 +4,62 @@ import {
   History, 
   AlertTriangle, 
   BarChart3, 
-  Settings, 
   Shield, 
-  LifeBuoy, 
-  XOctagon,
   GitCompare
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ activeTab, setActiveTab }) {
-  const menuItems = [
+  const { role } = useAuth();
+  
+  const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'comparison', label: 'Comparison', icon: GitCompare },
     { id: 'history', label: 'History', icon: History },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
+  const menuItems = allMenuItems.filter(item => {
+    if (role === 'admin') return true;
+    if (role === 'inspector') return ['dashboard', 'comparison'].includes(item.id);
+    if (['analyst', 'auditor'].includes(role)) return ['history', 'alerts', 'reports'].includes(item.id);
+    return false;
+  });
+
   return (
-    <div className="w-[280px] bg-sidebar border-r border-white/5 flex flex-col shrink-0 h-screen">
+    <div className="w-[260px] bg-sidebar flex flex-col shrink-0 h-screen border-r border-[#0a1a30]">
       {/* Brand Header */}
-      <div className="p-8 flex flex-col gap-2">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-accent-cyan rounded-lg flex items-center justify-center">
-            <Shield size={20} className="text-black" />
+      <div className="px-6 py-7 border-b border-white/10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 bg-gov-accent rounded flex items-center justify-center">
+            <Shield size={18} className="text-blue bg-white rounded-full h-10 w-10" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-white uppercase italic">CargoIntel</h1>
+          <h1 className="text-sm font-bold tracking-widest text-white uppercase">CargoIntel</h1>
         </div>
-        <div className="flex items-center gap-2 mt-4 px-1">
-          <div className="w-2 h-2 rounded-full bg-accent-cyan animate-pulse" />
-          <span className="text-[0.65rem] font-bold text-accent-cyan uppercase tracking-widest">Sentinel Lens</span>
-        </div>
-        <span className="text-[0.6rem] text-text-dim font-bold uppercase tracking-[0.2em] px-1">Active Protocol</span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 mt-4">
+      <nav className="flex-1 mt-2 py-2">
+        <p className="px-6 pt-4 pb-2 text-[0.55rem] font-semibold text-white/30 uppercase tracking-[0.2em]">Navigation</p>
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`sidebar-nav-item w-full ${activeTab === item.id ? 'active' : ''}`}
+              className={`sidebar-nav-item ${activeTab === item.id ? 'active' : ''}`}
             >
-              <Icon size={18} />
+              <Icon size={16} />
               {item.label}
             </button>
           );
         })}
       </nav>
 
-      {/* Footer Actions */}
-      <div className="p-8 flex flex-col gap-4 mt-auto">
-        <button className="btn-protocol btn-protocol-danger w-full">
-          <XOctagon size={16} />
-          Emergency Stop
-        </button>
-        <button className="flex items-center gap-3 text-text-dim hover:text-white transition-colors uppercase tracking-[0.15em] text-[0.65rem] font-bold px-1">
-          <LifeBuoy size={16} />
-          Support
-        </button>
+      {/* Footer */}
+      <div className="px-6 py-4 border-t border-white/10">
+        <p className="text-[0.55rem] text-white/30 uppercase tracking-widest">Dept. of Customs & Border Security</p>
       </div>
     </div>
   );
