@@ -71,7 +71,7 @@ app.add_middleware(
 # ──────────────────────────────────────────────────────────────────
 # HELPER — Convert PIL Image → base64 string for JSON transport
 # ──────────────────────────────────────────────────────────────────
-def pil_to_b64(image: Image.Image | None) -> str | None:
+def pil_to_b64(image: Optional[Image.Image]) -> Optional[str]:
     """Returns a base64-encoded JPEG string, or None if image is None."""
     if image is None:
         return None
