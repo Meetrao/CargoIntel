@@ -7,7 +7,8 @@ import {
   Eye,
   Maximize2,
   X,
-  Zap
+  Zap,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function ResultsDashboard({ result, analyzing }) {
@@ -16,6 +17,7 @@ export default function ResultsDashboard({ result, analyzing }) {
   const [aiSummary, setAiSummary] = useState('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [geminiError, setGeminiError] = useState('');
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
 
   useEffect(() => {
     const handleEsc = (e) => {
@@ -47,6 +49,20 @@ export default function ResultsDashboard({ result, analyzing }) {
   useEffect(() => {
     if (result && !aiSummary && !isGeneratingSummary && !geminiError) {
       generateAiReport();
+    }
+  }, [result]);
+
+  useEffect(() => {
+    if (result) {
+      const riskSummary = result.risk_summary || '';
+      const scoreMatch = riskSummary.match(/Risk Score : (\d+)/);
+      const riskScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+      
+      if (riskScore > 0 && riskScore < 60) {
+        setIsAlertOpen(true);
+      } else {
+        setIsAlertOpen(false);
+      }
     }
   }, [result]);
 
@@ -181,6 +197,48 @@ export default function ResultsDashboard({ result, analyzing }) {
                        <p className="text-[0.65rem] font-semibold text-gov-navy uppercase tracking-widest">{showHeatmap ? 'Anomaly Heatmap' : 'Neural Detection'}</p>
                     </div>
                  </div>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* Low Confidence High-Priority Alert */}
+      {isAlertOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-fade-in">
+           <div className="glass-card max-w-md w-full bg-white/95 border-2 border-accent-red/20 shadow-2xl overflow-hidden animate-slide-up">
+              <div className="bg-accent-red p-4 flex items-center gap-3">
+                 <ShieldAlert size={20} className="text-white animate-pulse" />
+                 <h3 className="text-white font-bold tracking-wider uppercase text-[0.7rem]">Recommended Action</h3>
+                 <button 
+                   onClick={() => setIsAlertOpen(false)}
+                   className="ml-auto text-white/80 hover:text-white transition-colors"
+                 >
+                   <X size={18} />
+                 </button>
+              </div>
+              <div className="p-8 flex flex-col gap-6">
+                 <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4 p-5 bg-accent-red/5 rounded-xl border border-accent-red/10 group hover:bg-accent-red/10 transition-all cursor-default">
+                       <span className="text-2xl drop-shadow-sm">⛔</span>
+                       <span className="text-gov-navy font-bold tracking-tight text-base uppercase">Detain Immediately</span>
+                    </div>
+                    <div className="flex items-center gap-4 p-5 bg-gov-navy/5 rounded-xl border border-gov-navy/10 group hover:bg-gov-navy/10 transition-all cursor-default">
+                       <span className="text-2xl drop-shadow-sm">🔍</span>
+                       <span className="text-gov-navy font-bold tracking-tight text-base uppercase">Send for Manual Inspection</span>
+                    </div>
+                 </div>
+                 
+                 <div className="pt-4 border-t border-[#EEF1F5] flex items-center justify-center gap-2 text-accent-amber animate-pulse">
+                    <AlertTriangle size={16} />
+                    <p className="text-[0.65rem] font-bold uppercase tracking-[0.15em]">Immediate attention required</p>
+                 </div>
+
+                 <button 
+                   onClick={() => setIsAlertOpen(false)}
+                   className="w-full py-4 mt-2 bg-gov-navy text-white text-[0.65rem] font-bold uppercase tracking-[0.2em] rounded-lg shadow-gov-md hover:bg-[#1a2b4b] transition-all active:scale-[0.98]"
+                 >
+                   Acknowledge & Close
+                 </button>
               </div>
            </div>
         </div>

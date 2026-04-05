@@ -32,8 +32,12 @@ export default function Sidebar({ activeTab, setActiveTab }) {
       {/* Brand Header */}
       <div className="px-6 py-7 border-b border-white/10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-gov-accent rounded flex items-center justify-center">
-            <Shield size={18} className="text-blue bg-white rounded-full h-10 w-10" />
+          <div className="w-16 h-16 flex items-center justify-center">
+            <img 
+              src="https://i.postimg.cc/VkH8z9ck/image-Photoroom-(39).png" 
+              alt="Logo" 
+              className="w-full h-full object-cover filter drop-shadow-md scale-125 origin-left" 
+            />
           </div>
           <h1 className="text-sm font-bold tracking-widest text-white uppercase">CargoIntel</h1>
         </div>

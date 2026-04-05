@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import ResultsDashboard from './ResultsDashboard';
 import { 
-  Search, 
   Filter, 
   ChevronLeft, 
   ChevronRight, 
@@ -15,7 +14,8 @@ import {
   Layers,
   FlaskConical,
   CheckCircle,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 export default function HistoryPage() {
@@ -23,7 +23,6 @@ export default function HistoryPage() {
   const [selectedScanId, setSelectedScanId] = useState(null);
   const [selectedScanData, setSelectedScanData] = useState(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState('ALL');
 
   const fetchHistory = async () => {
@@ -70,10 +69,6 @@ export default function HistoryPage() {
   };
 
   const filteredData = historyData.filter(row => {
-    const matchesSearch = row.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          row.node.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          row.type.toLowerCase().includes(searchQuery.toLowerCase());
-    if (!matchesSearch) return false;
     if (filterMode === 'FLAGGED' && !['FLAGGED', 'MANUAL CHECK'].includes(row.status)) return false;
     if (filterMode === 'CLEARED' && row.status !== 'CLEARED') return false;
     return true;
@@ -112,28 +107,18 @@ export default function HistoryPage() {
          })}
       </div>
 
-      {/* Search Bar */}
-      <div className="glass-card p-4 flex gap-4">
-         <div className="flex-1 relative">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dim" />
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by Scan ID, Node, or Cargo Type..." 
-              className="w-full bg-[#EEF1F5] border border-[#D1D9E0] rounded-lg pl-12 pr-4 py-3 text-[0.75rem] font-medium text-gov-navy placeholder:text-text-dim focus:bg-[#EEF1F5] focus:border-[#D1D9E0] transition-all"
-            />
-         </div>
+      {/* Filter Sidebar Toggle */}
+      <div className="flex justify-end">
          <button 
            onClick={() => setFilterMode(prev => prev === 'ALL' ? 'FLAGGED' : prev === 'FLAGGED' ? 'CLEARED' : 'ALL')}
            className={`px-6 py-2 border rounded font-black uppercase tracking-widest text-[0.65rem] transition-colors ${filterMode !== 'ALL' ? 'bg-accent-cyan/10 border-accent-cyan/20 text-accent-cyan' : 'bg-[#EEF1F5] border-[#D1D9E0] text-text-dim hover:text-gov-navy'}`}
          >
-            Filter: {filterMode}
+            Filter Mode: {filterMode}
          </button>
       </div>
 
       {/* History Table */}
-      <div className="glass-card flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="glass-card flex-1 min-h-[600px] flex flex-col overflow-hidden">
         <div className="overflow-x-auto h-full custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 bg-sidebar border-b border-[#D1D9E0] z-20">

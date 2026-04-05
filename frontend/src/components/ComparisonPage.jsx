@@ -186,24 +186,6 @@ export default function ComparisonPage() {
               </div>
               
               <div className="p-5">
-                {result ? (
-                  <div 
-                    className="aspect-square bg-[#F4F6F8] rounded border border-[#D1D9E0] overflow-hidden relative cursor-pointer group mb-5"
-                    onClick={() => openModal(`data:image/jpeg;base64,${result.diff_map_image}`)}
-                  >
-                     <img src={`data:image/jpeg;base64,${result.diff_map_image}`} className="w-full h-full object-contain" alt="Diff" />
-                     <div className="absolute inset-0 bg-accent-red/5 group-hover:bg-transparent transition-all pointer-events-none" />
-                     <div className="absolute top-3 right-3 p-1.5 bg-white rounded border border-[#D1D9E0] shadow-sm">
-                        <Maximize2 size={12} className="text-accent-red" />
-                     </div>
-                     <div className="absolute bottom-3 left-3 text-[0.45rem] font-semibold text-accent-red uppercase tracking-widest bg-white/90 px-2 py-0.5 rounded">Structural Anomalies Detected</div>
-                  </div>
-                ) : (
-                  <div className="aspect-square bg-[#F4F6F8] rounded border border-dashed border-[#D1D9E0] flex items-center justify-center opacity-30 mb-5">
-                     <ShieldCheck size={48} className="text-text-dim" />
-                  </div>
-                )}
-
                 <div className="p-4 bg-[#F4F6F8] rounded border border-[#D1D9E0]">
                    <h5 className="text-[0.55rem] font-semibold text-text-dim uppercase tracking-[0.2em] mb-3">Neural Comparison Report</h5>
                    <pre className="text-[0.65rem] font-medium leading-relaxed text-[#3D4F5F] whitespace-pre-wrap font-sans min-h-[100px]">

@@ -22,11 +22,23 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-obsidian bg-[#F4F6F8]">
-      <div className="max-w-md w-full bg-white p-10 shadow-gov-md border border-[#D1D9E0] rounded">
+    <div 
+      className="min-h-screen flex items-center justify-center bg-obsidian bg-[#F4F6F8]" // fallback background
+      style={{
+        backgroundImage: 'url("https://i.postimg.cc/MKJRY4Xt/Chat-GPT-Image-Apr-5-2026-12-43-04-AM.png")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <div className="max-w-md w-full bg-transparent p-10 shadow-gov-md rounded">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 bg-gov-accent rounded mb-4 flex items-center justify-center">
-            <Shield size={24} className="text-white" />
+          <div className="w-40 h-40 mb-4 flex items-center justify-center">
+            <img 
+              src="https://i.postimg.cc/VkH8z9ck/image-Photoroom-(39).png" 
+              alt="CargoIntel Logo" 
+              className="w-full h-full object-cover filter drop-shadow-md" 
+            />
           </div>
           <h2 className="text-xl font-bold text-gov-navy uppercase tracking-widest text-center">
             CargoIntel
