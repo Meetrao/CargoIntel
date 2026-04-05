@@ -21,3 +21,29 @@ Timestamp,Detections,Risk Score,Decision,Item Count
 2026-03-27 16:57:06,Baton,72,HIGH    — FLAG FOR INSPECTION,1
 2026-03-27 16:57:47,None,0,LOW     — CLEARED (Log Only),0
 2026-03-27 16:58:45,Baton,65,HIGH    — FLAG FOR INSPECTION,1
+2026-04-04 13:28:48,HandCuffs,43,MEDIUM  — MANUAL CHECK REQUIRED,1
+2026-04-04 13:29:20,"Knife, Scissors, Scissors, Powerbank",64,HIGH    — FLAG FOR INSPECTION,4
+2026-04-04 13:51:30,"Knife, Scissors, Scissors, Powerbank",64,HIGH    — FLAG FOR INSPECTION,4
+2026-04-04 19:32:01,"Powerbank, Sprayer, Hammer",2,LOW     — CLEARED (Log Only),3
+2026-04-04 19:32:14,None,0,LOW     — CLEARED (Log Only),0
+2026-04-04 19:32:18,Powerbank,2,LOW     — CLEARED (Log Only),1
+2026-04-04 19:32:29,Pliers,14,LOW     — CLEARED (Log Only),1
+2026-04-04 19:33:22,"Baton, HandCuffs, HandCuffs, Powerbank",55,MEDIUM  — MANUAL CHECK REQUIRED,4
+2026-04-04 19:35:40,"Wrench, Pliers",17,LOW     — CLEARED (Log Only),2
+2026-04-04 19:41:24,"Knife, Knife, Scissors, Scissors, Powerbank, Lighter",64,HIGH    — FLAG FOR INSPECTION,6
+2026-04-04 19:41:39,"Knife, Knife, Scissors, Scissors, Powerbank",64,HIGH    — FLAG FOR INSPECTION,5
+2026-04-05 01:29:49,"Pliers, HandCuffs",21,LOW     — CLEARED (Log Only),2
+2026-04-05 01:30:39,Lighter,6,LOW     — CLEARED (Log Only),1
+2026-04-05 09:58:04,"Gun, Gun, HandCuffs",80,CRITICAL — DETAIN CARGO IMMEDIATELY,3
+2026-04-05 09:58:26,None,0,LOW     — CLEARED (Log Only),0
+2026-04-05 09:58:31,None,0,LOW     — CLEARED (Log Only),0
+2026-04-05 09:58:36,None,0,LOW     — CLEARED (Log Only),0
+2026-04-05 09:58:52,Knife,76,HIGH    — FLAG FOR INSPECTION,1
+2026-04-05 09:59:14,"Gun, Gun, Bullet",81,CRITICAL — DETAIN CARGO IMMEDIATELY,3
+2026-04-05 09:59:47,"Knife, Bullet, Powerbank, Lighter",80,HIGH    — FLAG FOR INSPECTION,4
+2026-04-05 09:59:59,"Knife, Powerbank",80,HIGH    — FLAG FOR INSPECTION,2
+2026-04-05 10:00:08,"Knife, Powerbank",80,HIGH    — FLAG FOR INSPECTION,2
+2026-04-05 10:00:12,"Knife, Bullet, Powerbank, Lighter",80,HIGH    — FLAG FOR INSPECTION,4
+2026-04-05 10:00:17,"Knife, Bullet, Powerbank, Lighter",80,HIGH    — FLAG FOR INSPECTION,4
+2026-04-05 10:00:20,"Knife, Bullet, Powerbank, Lighter",80,HIGH    — FLAG FOR INSPECTION,4
+2026-04-05 10:00:24,"Knife, Bullet, Powerbank, Lighter",80,HIGH    — FLAG FOR INSPECTION,4

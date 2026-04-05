@@ -15,7 +15,7 @@ def main():
     model = YOLO(str(model_path))
 
     metrics = model.val(
-        data=str(ROOT / "pidray.yaml"),
+        data=str(ROOT / "data/balanced.yaml"),
         split='val',
         conf=0.25,
         iou=0.5,
