@@ -55,7 +55,7 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
 
       {/* Main Scanner Window */}
       <div 
-        className="flex-1 relative flex flex-col items-center justify-center p-8 cursor-pointer bg-[#F9FAFB]"
+        className="relative flex flex-col items-center justify-center p-8 cursor-pointer bg-[#F9FAFB] aspect-video min-h-[220px] max-h-[340px] overflow-hidden"
         onClick={() => !file && fileInputRef.current?.click()}
       >
         <input 
@@ -67,7 +67,7 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
         />
         
         {preview ? (
-          <div className="w-full h-full relative group/scan overflow-hidden rounded">
+          <div className="absolute inset-0 group/scan overflow-hidden rounded">
             <img 
               src={preview} 
               alt="Scan Preview" 

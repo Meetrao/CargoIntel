@@ -193,11 +193,6 @@ export default function HistoryPage() {
            <span className="text-[0.6rem] font-bold text-text-dim uppercase tracking-widest">Showing 1-{Math.min(10, filteredData.length)} of {filteredData.length} results</span>
            <div className="flex items-center gap-1">
               <button className="p-2 bg-[#EEF1F5] rounded hover:bg-[#EEF1F5] text-gov-navy transition-all"><ChevronLeft size={16} /></button>
-              {[1, 2, 3, '...', 149].map((p, i) => (
-                <button key={i} className={`h-8 w-8 text-[0.65rem] font-bold rounded flex items-center justify-center transition-all ${p === 1 ? 'bg-accent-cyan text-black shadow-lg shadow-accent-cyan/20' : 'text-text-dim hover:text-gov-navy hover:bg-[#EEF1F5]'}`}>
-                   {p}
-                </button>
-              ))}
               <button className="p-2 bg-[#EEF1F5] rounded hover:bg-[#EEF1F5] text-gov-navy transition-all"><ChevronRight size={16} /></button>
            </div>
         </div>

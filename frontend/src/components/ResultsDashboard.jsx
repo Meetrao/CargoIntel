@@ -55,11 +55,14 @@ export default function ResultsDashboard({ result, analyzing }) {
   useEffect(() => {
     if (result) {
       const riskSummary = result.risk_summary || '';
-      const scoreMatch = riskSummary.match(/Risk Score : (\d+)/);
-      const riskScore = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
+      // Parse all confidence values from lines like: "conf 85.0% | score ..."
+      const confMatches = [...riskSummary.matchAll(/conf\s+([\d.]+)%/gi)];
       
-      if (riskScore > 0 && riskScore < 60) {
-        setIsAlertOpen(true);
+      if (confMatches.length > 0) {
+        // Get the highest confidence among all detections
+        const maxConf = Math.max(...confMatches.map(m => parseFloat(m[1])));
+        // Show alert if even the best detection is below 60% confidence
+        setIsAlertOpen(maxConf < 60);
       } else {
         setIsAlertOpen(false);
       }
@@ -319,23 +322,6 @@ export default function ResultsDashboard({ result, analyzing }) {
         )}
       </div>
 
-      {/* Protocol Recommendation */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-3">
-           <ShieldAlert size={13} className={riskScore > 35 ? 'text-accent-amber' : 'text-gov-accent'} />
-           <h4 className="text-[0.6rem] font-semibold text-gov-navy uppercase tracking-[0.25em]">Protocol Advisory</h4>
-        </div>
-        <div className="p-3 bg-[#F4F6F8] rounded border border-[#D1D9E0] mb-4">
-           <p className="text-[0.65rem] font-medium text-[#4A5568] leading-relaxed">
-              {result.risk_summary.includes('Decision') ? result.risk_summary.split('Decision   :')[1].trim() : 'Proceed with standard clearance.'}
-           </p>
-        </div>
-        {riskScore > 35 && (
-          <button className="btn-protocol btn-protocol-danger w-full py-3 text-[0.7rem] font-semibold uppercase tracking-widest">
-            Initiate Level 2 Inspection
-          </button>
-        )}
-      </div>
     </div>
   );
 }
