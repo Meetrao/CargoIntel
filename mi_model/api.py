@@ -26,13 +26,18 @@ React fetch example:
 # ──────────────────────────────────────────────────────────────────
 import io
 import base64
+import os
+import csv
+import json
 from PIL import Image
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from typing import Optional
 import uvicorn
+import firebase_admin
+from firebase_admin import credentials, auth as firebase_auth, firestore
 
 # ── Import all logic from demo.py (same folder) ──────────────────
 from demo import (
@@ -66,12 +71,10 @@ app.add_middleware(
 # ──────────────────────────────────────────────────────────────────
 # HELPER — Convert PIL Image → base64 string for JSON transport
 # ──────────────────────────────────────────────────────────────────
-def pil_to_b64(image: Optional[Image.Image]) -> Optional[str]:
+def pil_to_b64(image: Image.Image | None) -> str | None:
     """Returns a base64-encoded JPEG string, or None if image is None."""
-
     if image is None:
         return None
-
     buffer = io.BytesIO()
     image.save(buffer, format="JPEG", quality=90)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
