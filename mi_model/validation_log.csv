@@ -1,0 +1,15 @@
+Timestamp,Image,TP,FP,FN,Precision,Recall,F1
+2026-04-05 13:15:37,C:\Users\44184\AppData\Local\Temp\gradio\acd131a71283b78729bd3c34897f0f894bbd9385\xray_easy00406.txt,1,3,0,0.250,1.000,0.400
+2026-04-05 13:21:23,C:\Users\44184\AppData\Local\Temp\gradio\acd131a71283b78729bd3c34897f0f894bbd9385\xray_easy00406.txt,1,0,0,1.000,1.000,1.000
+2026-04-05 13:24:18,C:\Users\44184\AppData\Local\Temp\gradio\1b65d28d87bdd447932c90429d457c38da843d15\xray_easy00448.txt,1,0,0,1.000,1.000,1.000
+2026-04-05 13:24:42,C:\Users\44184\AppData\Local\Temp\gradio\1b65d28d87bdd447932c90429d457c38da843d15\xray_easy00448.txt,1,0,0,1.000,1.000,1.000
+2026-04-05 13:24:45,C:\Users\44184\AppData\Local\Temp\gradio\1b65d28d87bdd447932c90429d457c38da843d15\xray_easy00448.txt,1,0,0,1.000,1.000,1.000
+2026-04-05 13:25:06,C:\Users\44184\AppData\Local\Temp\gradio\acd131a71283b78729bd3c34897f0f894bbd9385\xray_easy00406.txt,1,3,0,0.250,1.000,0.400
+2026-04-05 13:30:12,C:\Users\44184\AppData\Local\Temp\gradio\5b2ed59483709fb2690463a0e6d5a6423b056c6a\xray_easy06713.txt,1,0,0,1.000,1.000,1.000
+2026-04-05 13:31:31,C:\Users\44184\AppData\Local\Temp\gradio\2419f0177e3105d6ec5d5d0b228adda03a90e4b2\xray_hard01415.txt,2,3,0,0.400,1.000,0.571
+2026-04-05 13:35:30,C:\Users\44184\AppData\Local\Temp\gradio\2419f0177e3105d6ec5d5d0b228adda03a90e4b2\xray_hard01415.txt,2,1,0,0.667,1.000,0.800
+2026-04-05 13:35:37,C:\Users\44184\AppData\Local\Temp\gradio\2419f0177e3105d6ec5d5d0b228adda03a90e4b2\xray_hard01415.txt,2,3,0,0.400,1.000,0.571
+2026-04-05 13:35:43,C:\Users\44184\AppData\Local\Temp\gradio\2419f0177e3105d6ec5d5d0b228adda03a90e4b2\xray_hard01415.txt,2,0,0,1.000,1.000,1.000
+2026-04-05 13:37:40,C:\Users\44184\AppData\Local\Temp\gradio\1b65d28d87bdd447932c90429d457c38da843d15\xray_easy00448.txt,1,0,0,1.000,1.000,1.000
+2026-04-05 13:38:07,C:\Users\44184\AppData\Local\Temp\gradio\1b65d28d87bdd447932c90429d457c38da843d15\xray_easy00448.txt,0,1,1,0.000,0.000,0.000
+2026-04-05 13:38:35,C:\Users\44184\AppData\Local\Temp\gradio\23a443ab4ba088113623961b9f180dcd6d1f00f3\xray_hard02353.txt,1,0,1,1.000,0.500,0.667

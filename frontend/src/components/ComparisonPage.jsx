@@ -386,6 +386,7 @@ export default function ComparisonPage() {
     formData.append('file_a', fileA);
     formData.append('file_b', fileB);
     formData.append('conf', 0.25);
+    formData.append('iou', 0.45);
     try {
       const response = await axios.post('http://localhost:8000/api/compare', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

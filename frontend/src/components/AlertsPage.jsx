@@ -35,18 +35,23 @@ export default function AlertsPage() {
       if (res.data.history) {
         setRawHistoryData(res.data.history);
         const riskyData = res.data.history.filter(item => item.risk >= 35);
-        const mapped = riskyData.map(item => ({
-          id: item.id,
-          type: item.status === 'FLAGGED' ? 'CRITICAL SECURITY BREACH' : 'MIS-DECLARATION DETECTED',
-          time: item.timestamp,
-          location: 'Scanner XRAY_NODE_1',
-          description: `Automated assessment calculated risk score at ${item.risk}%. Cargo type identified as '${item.type}'. Declared items: ${item.value}.`,
-          status: item.risk >= 80 ? 'CRITICAL' : 'WARNING',
-          color: item.color,
-          risk: item.risk,
-          cargoType: item.type,
-          value: item.value,
-        }));
+        const mapped = riskyData.map(item => {
+          const isCritical = item.risk >= 80;
+          return {
+            id: item.id,
+            type: isCritical ? 'CRITICAL SECURITY BREACH' : 'MIS-DECLARATION DETECTED',
+            time: item.timestamp,
+            location: 'Scanner XRAY_NODE_1',
+            description: isCritical 
+              ? `Automated assessment calculated CRITICAL risk score at ${item.risk}%. Immediate attention required for identified items: ${item.type}.`
+              : `Potential mis-declaration detected with risk score at ${item.risk}%. Cargo scan identified items: ${item.type}. Verify against manifesto.`,
+            status: isCritical ? 'CRITICAL' : 'WARNING',
+            color: item.color,
+            risk: item.risk,
+            cargoType: item.type,
+            value: item.value,
+          };
+        });
         setAlertsData(mapped);
       }
     } catch (e) {

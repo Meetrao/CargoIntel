@@ -126,10 +126,8 @@ export default function HistoryPage() {
                 <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Scan ID</th>
                 <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Timestamp</th>
                 <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Cargo Type</th>
-                <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Declared Value</th>
                 <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Risk Score</th>
                 <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Status</th>
-                <th className="p-4 py-3 text-[0.55rem] font-black text-text-dim uppercase tracking-[0.3em]">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -154,9 +152,6 @@ export default function HistoryPage() {
                          <span className="text-[0.7rem] font-bold text-gov-navy uppercase tracking-widest">{row.type}</span>
                       </div>
                     </td>
-                    <td className="p-4 text-[0.7rem] font-black text-gov-navy/80 tabular-nums">
-                      {row.value}
-                    </td>
                     <td className="p-4">
                       <div className="flex items-center gap-3 min-w-[120px]">
                         <div className="flex-1 h-1.5 bg-[#EEF1F5] rounded-full overflow-hidden">
@@ -172,14 +167,6 @@ export default function HistoryPage() {
                        <span className={`text-[0.55rem] font-black uppercase px-2 py-1 rounded-sm border border-${row.color}/20 bg-${row.color}/10 text-${row.color} tracking-widest`}>
                           {row.status}
                        </span>
-                    </td>
-                    <td className="p-4">
-                       <button 
-                         onClick={() => handleOpenDetail(row.id)}
-                         className="p-2 text-text-dim hover:text-gov-navy hover:bg-[#EEF1F5] rounded transition-all"
-                       >
-                          <Eye size={16} />
-                       </button>
                     </td>
                   </tr>
                 );

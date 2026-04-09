@@ -5,7 +5,8 @@ import {
   AlertTriangle, 
   BarChart3, 
   Shield, 
-  GitCompare
+  GitCompare,
+  CheckSquare
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,6 +19,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     { id: 'history', label: 'History', icon: History },
     { id: 'alerts', label: 'Alerts', icon: AlertTriangle },
     { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'validation', label: 'Validation (FP / FN)', icon: CheckSquare },
   ];
 
   const menuItems = allMenuItems.filter(item => {

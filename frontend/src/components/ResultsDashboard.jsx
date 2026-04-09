@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { 
   Activity, 
   ShieldAlert, 
@@ -14,9 +13,6 @@ import {
 export default function ResultsDashboard({ result, analyzing }) {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [aiSummary, setAiSummary] = useState('');
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [geminiError, setGeminiError] = useState('');
   const [isAlertOpen, setIsAlertOpen] = useState(false);
 
   useEffect(() => {
@@ -26,31 +22,6 @@ export default function ResultsDashboard({ result, analyzing }) {
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, []);
-
-  const generateAiReport = async () => {
-    try {
-      setIsGeneratingSummary(true);
-      setGeminiError('');
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error("Gemini API key not found in environment.");
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const prompt = `You are a Senior Customs and Border Security Analyst. Review this automated X-Ray inference payload and provide a severe, professional 3-sentence executive summary report for command. Do not use markdown. Payload: Risk: ${result.risk_summary}. Reasons: ${result.reasoning}.`;
-      const modelResponse = await model.generateContent(prompt);
-      setAiSummary(modelResponse.response.text());
-    } catch (e) {
-      console.error(e);
-      setGeminiError('AI Network Uplink Failed. Manual review required.');
-    } finally {
-      setIsGeneratingSummary(false);
-    }
-  };
-
-  useEffect(() => {
-    if (result && !aiSummary && !isGeneratingSummary && !geminiError) {
-      generateAiReport();
-    }
-  }, [result]);
 
   useEffect(() => {
     if (result) {
@@ -281,45 +252,6 @@ export default function ResultsDashboard({ result, analyzing }) {
               <span className="text-xs font-semibold text-gov-navy uppercase tracking-widest">YOLOv8s Neural</span>
            </div>
         </div>
-      </div>
-
-      {/* Logic & Reasoning Module */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Activity size={13} className="text-gov-accent" />
-          <h4 className="text-[0.6rem] font-semibold text-gov-navy uppercase tracking-[0.25em]">Neural Reasoning</h4>
-        </div>
-        <div className="max-h-[180px] overflow-y-auto custom-scrollbar pr-1">
-          <pre className="text-[0.6rem] font-medium leading-relaxed text-[#4A5568] whitespace-pre-wrap font-sans">
-            {result.reasoning || "No analytical data available for this sector."}
-          </pre>
-        </div>
-      </div>
-
-      {/* AI Executive Summary Module */}
-      <div className="glass-card p-5 border-l-4 border-l-gov-accent">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full ${isGeneratingSummary ? 'bg-gov-accent animate-ping' : aiSummary ? 'bg-gov-green' : 'bg-accent-red'}`} />
-            <h4 className="text-[0.6rem] font-semibold text-gov-navy uppercase tracking-[0.25em]">AI Executive Summary</h4>
-          </div>
-          <span className="text-[0.5rem] font-semibold text-text-dim uppercase tracking-widest bg-[#F4F6F8] border border-[#D1D9E0] px-2 py-0.5 rounded">
-            Gemini-2.5-Flash
-          </span>
-        </div>
-        {isGeneratingSummary ? (
-          <div className="flex flex-col gap-2 opacity-50">
-             <div className="h-1.5 w-full bg-[#D1D9E0] rounded animate-pulse" />
-             <div className="h-1.5 w-[80%] bg-[#D1D9E0] rounded animate-pulse" />
-             <div className="h-1.5 w-[90%] bg-[#D1D9E0] rounded animate-pulse" />
-          </div>
-        ) : aiSummary ? (
-          <p className="text-[0.65rem] font-medium leading-relaxed text-[#4A5568] italic pl-3 border-l-2 border-gov-accent/35">
-            "{aiSummary}"
-          </p>
-        ) : (
-          <p className="text-[0.55rem] font-semibold text-accent-red uppercase tracking-widest">{geminiError || "Awaiting Generative AI Processing..."}</p>
-        )}
       </div>
 
     </div>

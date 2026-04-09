@@ -9,6 +9,7 @@ import HistoryPage from './components/HistoryPage';
 import ReportsPage from './components/ReportsPage';
 import SettingsPage from './components/SettingsPage';
 import ComparisonPage from './components/ComparisonPage';
+import ValidationPage from './components/ValidationPage';
 import Login from './components/Login';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import './index.css';
@@ -63,6 +64,8 @@ function AppContent() {
         return <ReportsPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'validation':
+        return <ValidationPage />;
       default:
         return null;
     }

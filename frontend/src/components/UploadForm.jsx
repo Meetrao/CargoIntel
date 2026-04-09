@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Loader2, AlertTriangle } from 'lucide-react';
+import { Upload, Loader2, AlertTriangle, Activity } from 'lucide-react';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,8 +10,31 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
   const [error, setError] = useState(null);
   const [conf, setConf] = useState(0.25);
   const [iou, setIou] = useState(0.45);
+  const [localResult, setLocalResult] = useState(null);
+  const [aiSummary, setAiSummary] = useState('');
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [geminiError, setGeminiError] = useState('');
   const fileInputRef = useRef(null);
   const { currentUser } = useAuth();
+
+  const generateAiReport = async (resultData) => {
+    try {
+      setIsGeneratingSummary(true);
+      setGeminiError('');
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("Gemini API key not found in environment.");
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const prompt = `You are a Senior Customs and Border Security Analyst. Review this automated X-Ray inference payload and provide a severe, professional 3-sentence executive summary report for command. Do not use markdown. Payload: Risk: ${resultData.risk_summary}. Reasons: ${resultData.reasoning}.`;
+      const modelResponse = await model.generateContent(prompt);
+      setAiSummary(modelResponse.response.text());
+    } catch (e) {
+      console.error(e);
+      setGeminiError('AI Network Uplink Failed. Manual review required.');
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -40,7 +64,9 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
           'Authorization': `Bearer ${token}`
         }
       });
+      setLocalResult(response.data);
       onResult(response.data);
+      generateAiReport(response.data);
     } catch (err) {
       console.error('Scan Error:', err);
       setError('Neural Link Failure: Ensure YOLO Cluster is operational.');
@@ -51,7 +77,56 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
 
   return (
     <div className="glass-card flex flex-col h-full overflow-hidden">
+      {/* Parameter Adjustment Sliders */}
+      <div className="px-6 py-4 bg-[#F8FAFC] border-b border-[#D1D9E0] flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Confidence Slider */}
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-[0.6rem] font-bold uppercase tracking-widest text-gov-navy flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-gov-accent" />
+                Confidence Threshold
+              </label>
+              <span className="text-[0.65rem] font-bold text-gov-accent bg-white px-2 py-0.5 rounded border border-[#D1D9E0] shadow-sm">
+                {Math.round(conf * 100)}%
+              </span>
+            </div>
+            <input 
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.01" 
+              value={conf} 
+              onChange={(e) => setConf(parseFloat(e.target.value))}
+              className="premium-slider"
+            />
+            <p className="text-[0.5rem] text-text-dim font-medium uppercase tracking-wider">Minimum probability for detection</p>
+          </div>
 
+          {/* IOU Slider */}
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-[0.6rem] font-bold uppercase tracking-widest text-gov-navy flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-gov-saffron" />
+                IOU Threshold
+              </label>
+              <span className="text-[0.65rem] font-bold text-gov-saffron bg-white px-2 py-0.5 rounded border border-[#D1D9E0] shadow-sm">
+                {Math.round(iou * 100)}%
+              </span>
+            </div>
+            <input 
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.01" 
+              value={iou} 
+              onChange={(e) => setIou(parseFloat(e.target.value))}
+              className="premium-slider"
+            />
+            <p className="text-[0.5rem] text-text-dim font-medium uppercase tracking-wider">Intersection over Union overlap limit</p>
+          </div>
+        </div>
+      </div>
 
       {/* Main Scanner Window */}
       <div 
@@ -133,6 +208,56 @@ export default function UploadForm({ onResult, analyzing, setAnalyzing }) {
           </button>
         )}
       </div>
+
+      {/* Analysis Details - Reasoning & AI Summary Side by Side */}
+      {localResult && (
+        <div className="p-6 border-t border-[#D1D9E0] bg-[#F8FAFC] animate-slide-up">
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Neural Reasoning Module */}
+              <div className="secondary-card p-5 bg-white border border-[#D1D9E0] rounded-xl shadow-sm flex flex-col h-[280px]">
+                <div className="flex items-center gap-2 mb-3 shrink-0">
+                  <Activity size={13} className="text-gov-accent" />
+                  <h4 className="text-[0.6rem] font-black text-gov-navy uppercase tracking-[0.25em]">Neural Reasoning</h4>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                  <pre className="text-[0.65rem] font-bold leading-relaxed text-[#4A5568] whitespace-pre-wrap font-sans uppercase tracking-tight">
+                    {localResult.reasoning || "No analytical data available for this sector."}
+                  </pre>
+                </div>
+              </div>
+
+              {/* AI Executive Summary Module */}
+              <div className="secondary-card p-5 bg-white border border-[#D1D9E0] rounded-xl shadow-sm border-l-4 border-l-gov-accent flex flex-col h-[280px]">
+                <div className="flex items-center justify-between mb-3 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${isGeneratingSummary ? 'bg-gov-accent animate-ping' : aiSummary ? 'bg-gov-green' : 'bg-accent-red'}`} />
+                    <h4 className="text-[0.6rem] font-black text-gov-navy uppercase tracking-[0.25em]">AI Executive Summary</h4>
+                  </div>
+                  <span className="text-[0.5rem] font-bold text-text-dim uppercase tracking-widest bg-[#F4F6F8] border border-[#D1D9E0] px-2 py-0.5 rounded">
+                    Gemini-2.5-Flash
+                  </span>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                  {isGeneratingSummary ? (
+                    <div className="flex flex-col gap-2 opacity-50">
+                       <div className="h-1.5 w-full bg-[#D1D9E0] rounded animate-pulse" />
+                       <div className="h-1.5 w-[80%] bg-[#D1D9E0] rounded animate-pulse" />
+                       <div className="h-1.5 w-[40%] bg-[#D1D9E0] rounded animate-pulse" />
+                       <div className="h-1.5 w-[90%] bg-[#D1D9E0] rounded animate-pulse mt-2" />
+                       <div className="h-1.5 w-[60%] bg-[#D1D9E0] rounded animate-pulse" />
+                    </div>
+                  ) : aiSummary ? (
+                    <p className="text-[0.65rem] font-bold leading-relaxed text-[#4A5568] italic pl-3 border-l-2 border-gov-accent/35 uppercase tracking-tight">
+                      "{aiSummary}"
+                    </p>
+                  ) : (
+                    <p className="text-[0.55rem] font-black text-accent-red uppercase tracking-widest">{geminiError || "Awaiting Generative AI Processing..."}</p>
+                  )}
+                </div>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 }

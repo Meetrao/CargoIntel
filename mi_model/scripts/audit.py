@@ -1,15 +1,20 @@
 """
-STEP 1 — DATASET AUDIT
-Run this first. Shows exact class distribution so we know
-what we're working with before touching any data.
+PIDRAY DATASET AUDIT SCRIPT
+Gives:
+- Total images
+- Per-class counts
+- Instances per class
 """
 
 import os
 from pathlib import Path
 from collections import defaultdict
 
-BASE = r"C:\Users\44184\Desktop\project\Customs_and_Border_Security_model\Ai_model"
+# 🔧 CHANGE THIS PATH
+BASE = r"C:\Users\44184\Desktop\project\Customs_and_Border_Security_model\mi_model"
+
 LABELS_DIR = Path(BASE) / "labels" / "train"
+IMAGES_DIR = Path(BASE) / "images" / "train"
 
 CLASS_NAMES = {
     0: "Baton",
@@ -26,34 +31,28 @@ CLASS_NAMES = {
     11: "Lighter",
 }
 
-# Lethal/critical weapon classes we want to boost
-WEAPON_CLASSES = {6, 7, 10, 0}   # Gun, Bullet, Knife, Baton
+print("\n🔍 SCANNING DATASET...\n")
 
-print("Scanning labels directory...")
-print(f"Path: {LABELS_DIR}\n")
+label_files = list(LABELS_DIR.glob("*.txt"))
+image_files = list(IMAGES_DIR.glob("*.*"))
 
-# Count images per class
-images_per_class   = defaultdict(int)   # how many images contain this class
-instances_per_class = defaultdict(int)  # total annotation instances
+total_labels = len(label_files)
+total_images = len(image_files)
 
-# Track which images contain weapons
-weapon_images  = set()
-all_label_files = list(LABELS_DIR.glob("*.txt"))
-total_files     = len(all_label_files)
+images_per_class = defaultdict(int)
+instances_per_class = defaultdict(int)
 
-print(f"Total label files: {total_files:,}")
-print("Scanning...\n")
+empty_files = 0
 
-empty_count = 0
-
-for label_file in all_label_files:
-    classes_in_image = set()
-    with open(label_file) as f:
+for file in label_files:
+    with open(file) as f:
         lines = [l.strip() for l in f if l.strip()]
 
     if not lines:
-        empty_count += 1
+        empty_files += 1
         continue
+
+    classes_in_image = set()
 
     for line in lines:
         cls = int(line.split()[0])
@@ -63,32 +62,38 @@ for label_file in all_label_files:
     for cls in classes_in_image:
         images_per_class[cls] += 1
 
-    if classes_in_image & WEAPON_CLASSES:
-        weapon_images.add(label_file.stem)
-
-# Print results
-print("=" * 55)
-print(f"{'CLASS':<14} {'IMAGES':>8} {'INSTANCES':>10} {'TYPE':>12}")
-print("=" * 55)
-
-sorted_classes = sorted(images_per_class.items(), key=lambda x: x[1], reverse=True)
-
-for cls_id, img_count in sorted_classes:
-    name     = CLASS_NAMES.get(cls_id, f"class_{cls_id}")
-    inst     = instances_per_class[cls_id]
-    tag      = "*** WEAPON ***" if cls_id in WEAPON_CLASSES else ""
-    print(f"{name:<14} {img_count:>8,} {inst:>10,} {tag:>12}")
+# ─────────────────────────────────────────────
 
 print("=" * 55)
-print(f"\nTotal labelled images : {total_files - empty_count:,}")
-print(f"Empty label files     : {empty_count:,}  (background/negative)")
-print(f"Images with weapons   : {len(weapon_images):,}")
-print(f"Weapon image ratio    : {len(weapon_images)/(total_files)*100:.1f}%")
+print("DATASET SUMMARY")
+print("=" * 55)
 
-max_class = max(images_per_class.values())
-min_class = min(images_per_class.values())
-print(f"\nImbalance ratio       : {max_class/min_class:.1f}x")
-print(f"  Most common class   : {CLASS_NAMES[max(images_per_class, key=images_per_class.get)]} ({max_class:,})")
-print(f"  Rarest class        : {CLASS_NAMES[min(images_per_class, key=images_per_class.get)]} ({min_class:,})")
+print(f"Total Images        : {total_images:,}")
+print(f"Total Label Files   : {total_labels:,}")
+print(f"Empty Labels        : {empty_files:,}")
+print(f"Images w/ objects   : {total_labels - empty_files:,}")
 
-print("\nSave this output — needed for Step 2.")
+print("\nCLASS DISTRIBUTION")
+print("=" * 55)
+print(f"{'Class':<12} {'Images':>10} {'Instances':>12}")
+
+for cls_id in sorted(CLASS_NAMES.keys()):
+    name = CLASS_NAMES[cls_id]
+    imgs = images_per_class.get(cls_id, 0)
+    inst = instances_per_class.get(cls_id, 0)
+    print(f"{name:<12} {imgs:>10,} {inst:>12,}")
+
+print("=" * 55)
+
+# imbalance ratio
+if images_per_class:
+    max_cls = max(images_per_class, key=images_per_class.get)
+    min_cls = min(images_per_class, key=images_per_class.get)
+
+    print("\nIMBALANCE ANALYSIS")
+    print("=" * 55)
+    print(f"Most common : {CLASS_NAMES[max_cls]} ({images_per_class[max_cls]:,})")
+    print(f"Least common: {CLASS_NAMES[min_cls]} ({images_per_class[min_cls]:,})")
+    print(f"Imbalance ratio: {images_per_class[max_cls]/images_per_class[min_cls]:.2f}x")
+
+print("\n✅ Done.")
